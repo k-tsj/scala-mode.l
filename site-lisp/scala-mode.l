@@ -75,11 +75,12 @@
           *scala-mode-syntax-table*
           *scala-mode-indent-step*))
 
-(defun string-join (strs delim)
-  (let ((r nil))
-    (dolist (i strs (apply #'concat (rest (nreverse r))))
-      (push delim r)
-      (push i r))))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun string-join (strs delim)
+    (let ((r nil))
+      (dolist (i strs (apply #'concat (rest (nreverse r))))
+        (push delim r)
+        (push i r)))))
 
 (defconstant *scala-expr-start-re*
   (string-join (append (mapcar #'(lambda (i) (concat "\\<" i "\\>")) '("if" "else" "for" "do" "yield"))
