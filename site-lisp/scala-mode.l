@@ -368,11 +368,12 @@ not move."
   (or (syntax-word-p (char-after p))
       (syntax-symbol-p (char-after p))))
 
-(defmacro d (&rest body)
-  (let ((sym (gensym)))
-    `(let ((,sym ,@body))
-       (msgbox "~A" ,sym)
-       ,sym)))
+;; For debugging
+;; (defmacro d (&rest body)
+;;   (let ((sym (gensym)))
+;;     `(let ((,sym ,@body))
+;;        (msgbox "~A" ,sym)
+;;        ,sym)))
 
 (defun scala-block-indentation ()
   (let ((block-start-eol (scala-point-after (end-of-line)))
