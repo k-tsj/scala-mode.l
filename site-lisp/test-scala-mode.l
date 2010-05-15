@@ -63,7 +63,7 @@
   (let* ((p (point))
          (bufstr (buffer-substring (point-min) (point-max)))
          (bufstat (concat (substring bufstr 0 p) "_|_" (substring bufstr p))))
-    (values  bufstat bufstr p)))
+    (values bufstat bufstr p)))
 
 (defun cmd-execute (&rest strs)
   #'(lambda ()
