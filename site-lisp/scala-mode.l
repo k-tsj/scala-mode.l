@@ -253,7 +253,7 @@ not move."
   ;; Return suggested indentation based on the following part of the
   ;; current expression. Return nil if indentation cannot be guessed.
   (save-excursion
-    (scala-forward-spaces (scala-point-after (end-of-line)))
+    (scala-forward-spaces (scala-point-after (goto-eol)))
     (cond
      ((eobp) nil)
      ((syntax-close-p (char-after (point)))
@@ -377,7 +377,7 @@ not move."
 ;;        ,sym)))
 
 (defun scala-block-indentation ()
-  (let ((block-start-eol (scala-point-after (end-of-line)))
+  (let ((block-start-eol (scala-point-after (goto-eol)))
         (block-after-spc (scala-point-after (scala-forward-spaces))))
     (if (> block-after-spc block-start-eol)
         (progn
