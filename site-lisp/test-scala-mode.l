@@ -275,6 +275,34 @@
                 #'ed::scala-indentation-from-preceding
                 #'equal)
 
+(test-on-buffer "scala-indentation-from-preceding(8)"
+                2
+                '("aaa.bbb(\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(9)"
+                nil ;; 8
+                '("aaa.bbb(ccc,\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(9)"
+                2
+                '("aaa.bbb {\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(10)"
+                2
+                '("aaa.bbb { ccc =>\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
 ;; --------------------------------------------------------------
 (test-section "defun: scala-looking-at-backward")
 (test-on-buffer "scala-looking-at-backward(1)"
