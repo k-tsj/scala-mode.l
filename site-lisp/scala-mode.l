@@ -377,18 +377,20 @@ not move."
 ;;        ,sym)))
 
 (defun scala-block-indentation ()
-  (let ((block-start-eol (scala-point-after (goto-eol)))
-        (block-after-spc (scala-point-after (scala-forward-spaces))))
-    (if (> block-after-spc block-start-eol)
-        (progn
-          (goto-bol)
-          (when (save-restriction
-                  (narrow-to-region (point) block-start-eol)
-                  (search-forward ")" t))
-            (forward-char)
-            (backward-sexp))
-          (+ (current-indentation) *scala-mode-indent-step*))
-      (current-column))))
+  (if (eq #\{ (char-before (point)))
+      (+ (current-indentation) *scala-mode-indent-step*)
+    (let ((block-start-eol (scala-point-after (goto-eol)))
+          (block-after-spc (scala-point-after (scala-forward-spaces))))
+      (if (> block-after-spc block-start-eol)
+          (progn
+            (goto-bol)
+            (when (save-restriction
+                    (narrow-to-region (point) block-start-eol)
+                    (search-forward ")" t))
+              (forward-char)
+              (backward-sexp))
+            (+ (current-indentation) *scala-mode-indent-step*))
+        (current-column)))))
 
 (defun scala-electric-close ()
   "Insert a brace, and if alone on a non-comment line, reindent."

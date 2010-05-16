@@ -349,7 +349,7 @@
                 #'equal)
 
 (test-on-buffer "scala-indentation-from-block(2)"
-                3
+                4
                 '("  {{}_|_")
                 #'ed::scala-indentation-from-block
                 #'equal)
@@ -425,6 +425,18 @@
               "\n"
               "}"))
 
+(test-on-buffer
+ "command-execute(7)"
+ '("a.b { c =>\n"
+   "  d(\n"
+   "  )\n"
+   "}_|_")
+ '()
+ (cmd-execute "a.b { c =>\n"
+              "d(\n"
+              ")\n"
+              "}"))
+
 ;; ----------------------------------------------------------------
 (test-section "known issues(scala-mode.l)")
 (test-on-buffer
@@ -447,17 +459,7 @@
  '()
  (cmd-execute "a = (b)\n"))
 
-(test-on-buffer
- "known issues(scala.el)(2)"
- '("a.b { c =>\n"
-   "  d(\n"
-   "  )\n"
-   "   }_|_")
- '()
- (cmd-execute "a.b { c =>\n"
-              "d(\n"
-              ")\n"
-              "}"))
+
 
 ;; ----------------------------------------------------------------
 (test-end)
