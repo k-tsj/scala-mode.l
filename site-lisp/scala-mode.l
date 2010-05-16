@@ -100,7 +100,7 @@
   "\\<else\\s +if\\>")
 
 (defconstant *scala-expr-middle-re*
-  (string-join (mapcar #'car *scala-expr-starter*) "\\|"))
+  (string-join (mapcar #'(lambda (pair) (concat "\\<" (car pair) "\\>")) *scala-expr-starter*) "\\|"))
 
 (defvar *scala-mode-indent-step* 2)
 

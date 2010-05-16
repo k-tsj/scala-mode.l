@@ -91,6 +91,11 @@
       (apply-bufstat (apply #'concat bufstat-list))
       (test msg expect thunk compare))))
 
+(defun indent-whole-buffer ()
+  (mark-whole-buffer)
+  (call-interactively 'indent-region)
+  (buffer-bufstat))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (test-start "scala-mode")
@@ -437,6 +442,14 @@
               ")\n"
               "}"))
 
+(test-on-buffer
+ "command-execute(8)"
+ '("_|_for () {\n"
+   "  down")
+ '("for () {\n"
+   "down")
+ #'indent-whole-buffer)
+
 ;; ----------------------------------------------------------------
 (test-section "known issues(scala-mode.l)")
 (test-on-buffer
@@ -459,7 +472,13 @@
  '()
  (cmd-execute "a = (b)\n"))
 
-
+(test-on-buffer
+ "known issues(scala.el)(2)"
+ '("_|_for () {\n"
+   "do")
+ '("for () {\n"
+   "do")
+ #'indent-whole-buffer)
 
 ;; ----------------------------------------------------------------
 (test-end)
