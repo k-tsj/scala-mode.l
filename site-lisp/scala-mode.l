@@ -137,7 +137,6 @@
   (set-syntax-word *scala-mode-syntax-table* #\<)
   (set-syntax-word *scala-mode-syntax-table* #\>)
   (set-syntax-word *scala-mode-syntax-table* #\=)
-  (set-syntax-word *scala-mode-syntax-table* #\:)
   (set-syntax-match *scala-mode-syntax-table* #\( #\))
   (set-syntax-match *scala-mode-syntax-table* #\{ #\})
   (set-syntax-match *scala-mode-syntax-table* #\[ #\])
