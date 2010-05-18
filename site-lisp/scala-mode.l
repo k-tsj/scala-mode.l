@@ -194,19 +194,7 @@ When called repeatedly, indent each time one stop further on the right."
        (progn (beginning-of-line) (point)))))
 
 (defun scala-indent-line-to (column)
-  "Indent current line to COLUMN and perhaps move point.
-The point is moved iff it is currently in the indentation, in which
-case it is brought to the end of that indentation. Otherwise it does
-not move."
-  (if (<= (current-column) (current-indentation))
-      (indent-line-to column)
-    (save-excursion (indent-line-to column))))
-
-(defun indent-line-to (column)
-  (let* ((bol (scala-point-after (goto-bol))))
-    (goto-bol)
-    (delete-horizontal-spaces)
-    (indent-to column)))
+  (smart-indentation column))
 
 (defun scala-indentation ()
   "Return the suggested indentation for the current line."
