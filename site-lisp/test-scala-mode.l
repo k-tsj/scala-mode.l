@@ -294,14 +294,14 @@
                 #'ed::scala-indentation-from-preceding
                 #'equal)
 
-(test-on-buffer "scala-indentation-from-preceding(9)"
+(test-on-buffer "scala-indentation-from-preceding(10)"
                 2
                 '("aaa.bbb {\n"
                   "_|_")
                 #'ed::scala-indentation-from-preceding
                 #'equal)
 
-(test-on-buffer "scala-indentation-from-preceding(10)"
+(test-on-buffer "scala-indentation-from-preceding(11)"
                 2
                 '("aaa.bbb { ccc =>\n"
                   "_|_")
@@ -338,7 +338,7 @@
                     (ed::scala-looking-at-backward "ab"))
                 #'equal)
 
-(test-on-buffer "scala-looking-at-backward(4)"
+(test-on-buffer "scala-looking-at-backward(5)"
                 t
                 '(" =>_|_")
                 #'(lambda ()
