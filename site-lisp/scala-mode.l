@@ -1,7 +1,7 @@
 ;;;
 ;;; scala-mode.l
 ;;;
-;;;   Copyright (c) 2010 Kazuki Tsujimoto, All rights reserved.
+;;;   Copyright (c) 2010-2012 Kazuki Tsujimoto, All rights reserved.
 ;;;
 ;;;   -- scala-mode-indent.el --
 ;;;   Copyright (C) 2009 Scala Dev Team at EPFL

@@ -1,7 +1,7 @@
 ;;;
 ;;; test-scala-mode.l
 ;;;
-;;;   Copyright (c) 2010 Kazuki Tsujimoto, All rights reserved.
+;;;   Copyright (c) 2010-2012 Kazuki Tsujimoto, All rights reserved.
 ;;;
 ;;;   License
 ;;;
