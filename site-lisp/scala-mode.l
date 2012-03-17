@@ -3,7 +3,7 @@
 ;;;
 ;;;   Copyright (c) 2010 Kazuki Tsujimoto, All rights reserved.
 ;;;
-;;;   -- scala-mode-indnet.el --
+;;;   -- scala-mode-indent.el --
 ;;;   Copyright (C) 2009 Scala Dev Team at EPFL
 ;;;   Authors:
 ;;;     * Main mode developers
