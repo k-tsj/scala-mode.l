@@ -51,6 +51,8 @@
 ;; Utilities ---------------------------------------------------
 (defvar *after-setup-buffer-hooks* nil)
 
+(defvar *test-scala-mode-indent-mode* nil)
+
 ;; `bufstat' spec
 ;;   e.g. "a_|_b"  => buffer-substring: "ab"
 ;;                    point: 1
@@ -96,15 +98,34 @@
   (call-interactively 'indent-region)
   (buffer-bufstat))
 
+(defun scala-mode-with-indent-by-space ()
+  (setq ed::*scala-indent-tabs-mode* nil)
+  (setq ed::*scala-mode-indent-step* 2)
+  (ed::scala-mode))
+
+(defun scala-mode-with-indent-by-tab ()
+  (setq ed::*scala-indent-tabs-mode* t)
+  (set-tab-columns 8)
+  (ed::scala-mode))
+
+(defun setup-scala-mode ()
+  (case *test-scala-mode-indent-mode*
+    ((space) (scala-mode-with-indent-by-space))
+    ((tab) (scala-mode-with-indent-by-tab))
+    (t (error "unknown indent-mode"))))
+
+(defun ntabs (tabnum)
+  (* (tab-columns) tabnum))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (test-start "scala-mode")
 (setq *test-report-error* nil)
 
 (unless *after-setup-buffer-hooks*
-  (add-hook '*after-setup-buffer-hooks* #'ed::scala-mode))
+  (add-hook '*after-setup-buffer-hooks* #'setup-scala-mode))
 
-(setq ed::*scala-mode-indent-step* 2)
+(setq *test-scala-mode-indent-mode* 'space)
 
 ;; --------------------------------------------------------------
 (test-section "defun: scala-forward-spaces")
@@ -141,46 +162,48 @@
  #'ed::scala-backward-spaces)
 
 ;; --------------------------------------------------------------
-(test-section "defun: scala-block-indentation")
-(test-on-buffer "scala-block-indentation(1)"
+(setq *test-scala-mode-indent-mode* 'space)
+(test-section "defun: scala-block-indentation(indent-mode:space)")
+(test-on-buffer "scala-block-indentation(1)(indent-mode:space)"
                 0
                 '("_|_")
                 #'ed::scala-block-indentation
                 #'equal)
 
 
-(test-on-buffer "scala-block-indentation(2)"
+(test-on-buffer "scala-block-indentation(2)(indent-mode:space)"
                 7
                 '("     (  ) _|_ \n")
                 #'ed::scala-block-indentation
                 #'equal)
 
-(test-on-buffer "scala-block-indentation(3)"
+(test-on-buffer "scala-block-indentation(3)(indent-mode:space)"
                 5
                 '("   _|_\n"
                   "  ")
                 #'ed::scala-block-indentation
                 #'equal)
 
-(test-on-buffer "scala-block-indentation(4)"
+(test-on-buffer "scala-block-indentation(4)(indent-mode:space)"
                 3
                 '("   _|_   ")
                 #'ed::scala-block-indentation
                 #'equal)
 
-(test-on-buffer "scala-block-indentation(5)"
+(test-on-buffer "scala-block-indentation(5)(indent-mode:space)"
                 0
                 '("_|_  match {")
                 #'ed::scala-block-indentation
                 #'equal)
 
-(test-on-buffer "scala-block-indentation(6)"
+(test-on-buffer "scala-block-indentation(6)(indent-mode:space)"
                 8
                 '("  match _|_{")
                 #'ed::scala-block-indentation
                 #'equal)
 
 ;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "defun: scala-indentation-from-following")
 (test-on-buffer "scala-indentation-from-following(1)"
                 nil
@@ -228,6 +251,55 @@
                 #'equal)
 
 ;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "defun: scala-indentation-from-following(indent:tab)")
+(test-on-buffer "scala-indentation-from-following(1)(indent:tab)"
+                nil
+                '("_|_")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-following(2)(indent:tab)"
+                *test-error*
+                '("_|_}")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-following(3)(indent:tab)"
+                (ntabs 1)
+                '("\t{\n"
+                  "_|_}")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-following(4)(indent:tab)"
+                (ntabs 1)
+                '("_|_\telse ")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-following(5)(indent:tab)"
+                (ntabs 1)
+                '("\tif // if\n"
+                  "_|_else")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-following(6)(indent:tab)"
+                (ntabs 1)
+                '("\telse if\n"
+                  "_|_else")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-following(7)(indent:tab)"
+                nil
+                '("_|_ a ")
+                #'ed::scala-indentation-from-following
+                #'equal)
+
+;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "defun: scala-indentation-from-preceding")
 (test-on-buffer "scala-indentation-from-preceding(1)"
                 nil
@@ -309,6 +381,89 @@
                 #'equal)
 
 ;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "defun: scala-indentation-from-preceding(indent:tab)")
+(test-on-buffer "scala-indentation-from-preceding(1)(indent:tab)"
+                nil
+                '("\t\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(2)(indent:tab)"
+                (ntabs 2)
+                '("\t(\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(3)(indent:tab)"
+                nil
+                '("\t( )\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(4)(indent:tab)"
+                (ntabs 3)
+                '("\t\tfor ( )\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+
+(test-on-buffer "scala-indentation-from-preceding(5)(indent:tab)"
+                *test-error*
+                '("   )\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(6)(indent:tab)"
+                nil
+                '("a = {\n"
+                  "}\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(7)(indent:tab)"
+                nil
+                '("format()\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(8)(indent:tab)"
+                (ntabs 1)
+                '("aaa.bbb(\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(9)(indent:tab)"
+                nil ;; 8
+                '("aaa.bbb(ccc,\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(10)(indent:tab)"
+                (ntabs 1)
+                '("aaa.bbb {\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-preceding(11)(indent:tab)"
+                (ntabs 1)
+                '("aaa.bbb { ccc =>\n"
+                  "_|_")
+                #'ed::scala-indentation-from-preceding
+                #'equal)
+
+;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "defun: scala-looking-at-backward")
 (test-on-buffer "scala-looking-at-backward(1)"
                 nil
@@ -346,6 +501,83 @@
                 #'equal)
 
 ;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
+(test-section "defun: scala-looking-at-backward(indent:tab)")
+(test-on-buffer "scala-looking-at-backward(1)(indent:tab)"
+                nil
+                '(" _|_ab")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(2)(indent:tab)"
+                t
+                '(" a_|_b")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(3)(indent:tab)"
+                t
+                '(" ab_|_")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(4)(indent:tab)"
+                nil
+                '(" ab _|_")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(5)(indent:tab)"
+                t
+                '(" =>_|_")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "=>"))
+                #'equal)
+
+;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "defun: scala-looking-at-backward(indent:tab)")
+(test-on-buffer "scala-looking-at-backward(1)(indent:tab)"
+                nil
+                '(" _|_ab")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(2)(indent:tab)"
+                t
+                '(" a_|_b")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(3)(indent:tab)"
+                t
+                '(" ab_|_")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(4)(indent:tab)"
+                nil
+                '(" ab _|_")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "ab"))
+                #'equal)
+
+(test-on-buffer "scala-looking-at-backward(5)(indent:tab)"
+                t
+                '(" =>_|_")
+                #'(lambda ()
+                    (ed::scala-looking-at-backward "=>"))
+                #'equal)
+
+;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "defun: scala-indentation-from-block")
 (test-on-buffer "scala-indentation-from-block(1)"
                 0
@@ -360,6 +592,22 @@
                 #'equal)
 
 ;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "defun: scala-indentation-from-block(indent:tab)")
+(test-on-buffer "scala-indentation-from-block(1)(indent:tab)"
+                0
+                '("\t_|_")
+                #'ed::scala-indentation-from-block
+                #'equal)
+
+(test-on-buffer "scala-indentation-from-block(2)(indent:tab)"
+                (ntabs 2)
+                '("\t{{}_|_")
+                #'ed::scala-indentation-from-block
+                #'equal)
+
+;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "defun: skip-only-white-forward")
 (test-on-buffer "skip-only-white-forward(1)"
                 '("  _|_/*  */  ")
@@ -371,8 +619,22 @@
                 '("_|_  \n  a  ")
                 #'ed::skip-only-white-forward)
 
+;; --------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "defun: skip-only-white-forward(indent:tab)")
+(test-on-buffer "skip-only-white-forward(1)(indent:tab)"
+                '("  _|_/*  */  ")
+                '("_|_  /*  */  ")
+                #'ed::skip-only-white-forward)
+
+(test-on-buffer "skip-only-white-forward(2)(indent:tab)"
+                '("  _|_\n  a  ")
+                '("_|_  \n  a  ")
+                #'ed::skip-only-white-forward)
+
 
 ;; ----------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "command-execute")
 (test-on-buffer
  "command-execute(1)"
@@ -451,6 +713,87 @@
  #'indent-whole-buffer)
 
 ;; ----------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "command-execute(indent:tab)")
+(test-on-buffer
+ "command-execute(1)(indent:tab)"
+ '("\t/*\n"
+   "\t * _|_")
+ '()
+ (cmd-execute "\t\t/*\n")) ; second "\t" means to insert a tab before "/*".
+
+(test-on-buffer
+ "command-execute(2)(indent:tab)"
+ '("{\n"
+   "\t_|_")
+ '()
+ (cmd-execute "{\n"))
+
+(test-on-buffer
+ "command-execute(3)(indent:tab)"
+ '("if\n"
+   "\t_|_")
+ '()
+ (cmd-execute "if\n"))
+
+(test-on-buffer
+ "command-execute(4)(indent:tab)"
+ '("if\n"
+   "\t_|_")
+ '()
+ (cmd-execute "if\n"))
+
+(test-on-buffer
+ "command-execute(5)(indent:tab)"
+ '("{\n"
+   "\t[\n"
+   "\t\t(\n"
+   "\t\t)\n"
+   "\t]\n"
+   "}_|_")
+ '()
+ (cmd-execute "{\n"
+              "[\n"
+              "(\n"
+              ")\n"
+              "]\n"
+              "}"))
+
+(test-on-buffer
+ "command-execute(6)(indent:tab)"
+ '("{\n"
+   "\n"
+   "\n"
+   "}_|_")
+ '()
+ (cmd-execute "{\n"
+              "\n"
+              "\n"
+              "}"))
+
+(test-on-buffer
+ "command-execute(7)(indent:tab)"
+ '("a.b { c =>\n"
+   "\td(\n"
+   "\t)\n"
+   "}_|_")
+ '()
+ (cmd-execute "a.b { c =>\n"
+              "d(\n"
+              ")\n"
+              "}"))
+
+(test-on-buffer
+ "command-execute(8)(indent:tab)"
+ '("_|_for () {\n"
+   "\tdown")
+ '("for () {\n"
+   "down")
+ #'indent-whole-buffer)
+
+
+;; ----------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "known issues(scala-mode.l)")
 (test-on-buffer
  "known issues(scala-mode.l)(1)"
@@ -464,6 +807,7 @@
  #'ed::scala-forward-spaces)
 
 ;; ----------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'space)
 (test-section "known issues(scala.el)")
 (test-on-buffer
  "known issues(scala.el)(1)"
@@ -474,6 +818,23 @@
 
 (test-on-buffer
  "known issues(scala.el)(2)"
+ '("_|_for () {\n"
+   "do")
+ '("for () {\n"
+   "do")
+ #'indent-whole-buffer)
+;; ----------------------------------------------------------------
+(setq *test-scala-mode-indent-mode* 'tab)
+(test-section "known issues(scala.el)(indent:tab)")
+(test-on-buffer
+ "known issues(scala.el)(1)(indent:tab)"
+ '("a = (b)\n"
+   "\t_|_")
+ '()
+ (cmd-execute "a = (b)\n"))
+
+(test-on-buffer
+ "known issues(scala.el)(2)(indent:tab)"
  '("_|_for () {\n"
    "do")
  '("for () {\n"

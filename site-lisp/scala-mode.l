@@ -73,7 +73,9 @@
           *scala-mode-hook*
           *scala-mode-map*
           *scala-mode-syntax-table*
-          *scala-mode-indent-step*))
+          *scala-mode-indent-step*
+          *scala-indent-tabs-mode*
+          ))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun string-join (strs delim)
@@ -101,6 +103,8 @@
 
 (defconstant *scala-expr-middle-re*
   (string-join (mapcar #'(lambda (pair) (concat "\\<" (car pair) "\\>")) *scala-expr-starter*) "\\|"))
+
+(defvar *scala-indent-tabs-mode* nil)
 
 (defvar *scala-mode-indent-step* 2)
 
@@ -154,6 +158,8 @@
   (setq mode-name "Scala")
   (make-local-variable 'build-summary-function)
   (setq build-summary-function 'scala-build-summary-of-functions)
+  (make-local-variable 'indent-tabs-mode)
+  (setq indent-tabs-mode *scala-indent-tabs-mode*)
   (make-local-variable 'mode-specific-indent-command)
   (setq mode-specific-indent-command #'scala-indent-line)
   (use-keymap *scala-mode-map*)
@@ -177,21 +183,29 @@
 (defun scala-build-summary-of-functions ()
   nil)
 
+(defun scala-mode-indent-step ()
+  (if indent-tabs-mode
+      (tab-columns)
+    *scala-mode-indent-step*))
+
 (defun scala-indent-line ()
   "Indent current line as smartly as possible.
 When called repeatedly, indent each time one stop further on the right."
   (interactive)
   (if (or (eq *last-command* 'scala-indent-line)
           (eq *last-command* 'scala-undent-line))
-      (scala-indent-line-to (+ (current-indentation) *scala-mode-indent-step*))
+      (scala-indent-line-to (+ (current-indentation) (scala-mode-indent-step)))
     (ignore-errors
      (let ((indentation (scala-indentation)))
        (scala-indent-line-to indentation)))))
 
 (defun current-indentation ()
-  (save-excursion
-    (- (progn (back-to-indentation) (point))
-       (progn (beginning-of-line) (point)))))
+  (let ((column-num (save-excursion
+                      (- (progn (back-to-indentation) (point))
+                         (progn (beginning-of-line) (point))))))
+    (if indent-tabs-mode
+        (* column-num (tab-columns))
+      column-num)))
 
 (defun scala-indent-line-to (column)
   (smart-indentation column))
@@ -246,7 +260,7 @@ When called repeatedly, indent each time one stop further on the right."
      ((syntax-close-p (char-after (point)))
       (backward-up-list)
       (goto-char (1+ (point)))
-      (- (scala-block-indentation) *scala-mode-indent-step*))
+      (- (scala-block-indentation) (scala-mode-indent-step)))
      ((looking-at *scala-expr-middle-re*)
       ;; [...] this is a somewhat of a hack.
       (let ((matching-kw (cdr (assoc (match-string 0)
@@ -281,7 +295,7 @@ When called repeatedly, indent each time one stop further on the right."
                (backward-sexp)
                (scala-backward-spaces))
              (scala-looking-at-backward *scala-expr-start-re*)))
-         (+ (current-indentation) *scala-mode-indent-step*))))
+         (+ (current-indentation) (scala-mode-indent-step)))))
 
 (defun scala-indentation-from-block ()
   ;; Return suggested indentation based on the current block.
@@ -365,7 +379,7 @@ When called repeatedly, indent each time one stop further on the right."
 
 (defun scala-block-indentation ()
   (if (eq #\{ (char-before (point)))
-      (+ (current-indentation) *scala-mode-indent-step*)
+      (+ (current-indentation) (scala-mode-indent-step))
     (let ((block-start-eol (scala-point-after (goto-eol)))
           (block-after-spc (scala-point-after (scala-forward-spaces))))
       (if (> block-after-spc block-start-eol)
@@ -376,7 +390,7 @@ When called repeatedly, indent each time one stop further on the right."
                     (search-forward ")" t))
               (forward-char)
               (backward-sexp))
-            (+ (current-indentation) *scala-mode-indent-step*))
+            (+ (current-indentation) (scala-mode-indent-step)))
         (current-column)))))
 
 (defun scala-electric-close ()
