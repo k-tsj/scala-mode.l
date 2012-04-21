@@ -75,6 +75,7 @@
           *scala-mode-syntax-table*
           *scala-mode-indent-step*
           *scala-indent-tabs-mode*
+          *scala-mode-abbrev-table*
           ))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -124,6 +125,10 @@
   (define-key *scala-mode-map* #\C-h 'backward-delete-char-untabify-or-selection)
   (define-key *scala-mode-map* #\TAB 'scala-indent-line)
   (define-key *scala-mode-map* #\RET 'scala-newline-and-indent))
+
+(defvar *scala-mode-abbrev-table* nil)
+(unless *scala-mode-abbrev-table*
+  (define-abbrev-table '*scala-mode-abbrev-table*))
 
 (defvar *scala-mode-syntax-table* nil)
 (unless *scala-mode-syntax-table*
@@ -177,6 +182,7 @@
   (setq comment-indent-function 'c-comment-indent)
   (when *scala-comment-column*
     (setq comment-column *scala-comment-column*))
+  (setq *local-abbrev-table* *scala-mode-abbrev-table*)
   (run-hooks '*scala-mode-hook*))
 
 ;; TODO
